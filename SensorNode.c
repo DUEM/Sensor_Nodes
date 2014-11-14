@@ -16,7 +16,10 @@ unsigned char Flag_Recv = 0;
 unsigned char len = 0;
 unsigned char buf[8];
 unsigned char message[8] 				// message to be sent
-int message_id;						// id to message
+INT32U send_message_id;						// send id to message
+INT32U recieved_message_id;					// message id recieved
+INT8U remote_frame;					// whether the message is a remote frame or not
+
 
 char str[20];
 
@@ -61,7 +64,7 @@ START_INIT:
 void send_data()
 {
     // send data:  id = 0x00, standrad flame, data len = 8, stmp: data buf
-    CAN.sendMsgBuf(message_id, 0, 8, message);
+    CAN.sendMsgBuf(send_message_id, 0, 8, message);
     delay(100);                       // send data per 100ms
 }
 
@@ -74,9 +77,12 @@ void loop()
         Flag_Recv = 0;                // clear flag
         CAN.readMsgBuf(&len, buf);    // read data,  len: data length, buf: data buf
 		
+	remote_frame = CAN.isRemoteRequest(void) //checking if a remote frame is recieved 	
+	recieved_message_id = CAN.getCanId(void); // getting message id.
 		
+	if(remote_frame == 1){
 		
-		
+	}
 		
        /* Serial.println("\r\n------------------------------------------------------------------");
         Serial.print("Get Data From id: ");
