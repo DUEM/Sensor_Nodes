@@ -5,10 +5,6 @@
 
 #include <SPI.h>
 #include "mcp_can.h"
-/* ====================== defining messages ========================== */
-#define unsigned char HEART_BEAT[8] {0, 0, 0, 0, 0, 0, 0, 0, 0, 1} 	      // heart beat request
-#define unsigned char DATA_REQUEST[8] {0, 0, 0, 0, 0, 0, 0, 0, 1, 0}      // Request sensor data	
-#define unsigned char MESSAGE_RECIEVED[8] {0, 0, 0, 0, 0, 0, 0, 0, 1, 1}  // Message received confirmation
 /* 
 could also define if the last 3 bits are 111 then its some sort of recalibration message.
 */
@@ -19,6 +15,8 @@ MCP_CAN CAN(10);                                            // Set CS to pin 10
 unsigned char Flag_Recv = 0;
 unsigned char len = 0;
 unsigned char buf[8];
+unsigned char message[8] 				// message to be sent
+int message_id;						// id to message
 
 char str[20];
 
@@ -63,7 +61,7 @@ START_INIT:
 void send_data()
 {
     // send data:  id = 0x00, standrad flame, data len = 8, stmp: data buf
-    CAN.sendMsgBuf(0x00, 0, 8, stmp);
+    CAN.sendMsgBuf(message_id, 0, 8, message);
     delay(100);                       // send data per 100ms
 }
 
@@ -76,9 +74,9 @@ void loop()
         Flag_Recv = 0;                // clear flag
         CAN.readMsgBuf(&len, buf);    // read data,  len: data length, buf: data buf
 		
-		if(buf == HEART_BEAT){ /* sample filtering so when the message starts with 1*/
-				send_data();
-		}
+		
+		
+		
 		
        /* Serial.println("\r\n------------------------------------------------------------------");
         Serial.print("Get Data From id: ");
