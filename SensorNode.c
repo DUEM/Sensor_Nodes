@@ -79,6 +79,7 @@ void loop()
 		
 	remote_frame = CAN.isRemoteRequest(void) //checking if a remote frame is recieved 	
 	recieved_message_id = CAN.getCanId(void); // getting message id.
+	/* write event handler based upon the message id */
 		
 	if(remote_frame == 1){
 		
