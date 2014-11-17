@@ -9,6 +9,16 @@
 could also define if the last 3 bits are 111 then its some sort of recalibration message.
 */
 
+/* Variable Definitions */
+int TargetID,
+	CommandID,
+	DataFieldID,
+	Reserved,
+	Frequency,
+	RecievedMessageID,
+	SendMessageID,
+	RemoteFrame;
+
 
 MCP_CAN CAN(10);                                            // Set CS to pin 10
 
@@ -71,18 +81,32 @@ void send_data()
 
 void loop()
 {
-     if(CAN_MSGAVAIL == CAN.checkReceive())            // check if data coming
-    {
+	
+	 if(CAN_MSGAVAIL == CAN.checkReceive())             // check if data coming
+   		{
     
-        Flag_Recv = 0;                // clear flag
-        CAN.readMsgBuf(&len, buf);    // read data,  len: data length, buf: data buf
+        	FlagRecv = 0;                					// clear flag
+        	CAN.readMsgBuf(&Length, Buffer);    			// read data,  len: data length, buf: data buf
 		
-	remote_frame = CAN.isRemoteRequest(void) //checking if a remote frame is recieved 	
-	recieved_message_id = CAN.getCanId(void); // getting message id.
-	/* write event handler based upon the message id */
+			RemoteFrame = CAN.isRemoteRequest(void) 		//checking if a remote frame is recieved 	
+			RecievedMessageID = CAN.getCanId(void); 		// getting message id.
+		    
+			TargetID     = (RecievedMessageID & 0x000001FF)		 ;
+   		        CommandID    = (RecievedMessageID & 0x0001FE00) >> 9 ;
+   			DataFieldID  = (RecievedMessageID & 0x03FC0000)	>> 17;
+   			Reserved     = (RecievedMessageID & 0x3C000000)	>> 25;
+   			Frequency    = (RecievedMessageID & 0xF8000000)	>> 28;
+		}
 		
-	if(remote_frame == 1){
 		
+	if (TargetID == MyID || TargetID == 0) //global case = 0, node specific = MyID
+			{
+				//do something
+				sendData();
+			}
+
+    
+	
 	}
 		
        /* Serial.println("\r\n------------------------------------------------------------------");
