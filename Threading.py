@@ -4,7 +4,7 @@ import socket, sys, threading #, socketserver
 
 def threadFunc(conn, addr):
     while 1:
-        try:
+        try: #getting message
             message1 = conn.recv(2048)
             if not len(message1):
                 print("Disconnected with " + addr[0] + ":" + str(addr[1]))
@@ -27,16 +27,37 @@ def threadFunc(conn, addr):
             else:
                 info = "You don\'t have permission to access this database\n"
                 msg1 = (str(info)).encode("utf-8")
-        elif message1 == "_mv_":
-            info = film_info()
-            msg1 = (str(info)).encode("utf-8")
         elif message1 == "_info_":
             info = "1) _db_ for users info database\n"
             info += "2) _mv_ for movies database\n"
             msg1 = (str(info)).encode("utf-8")
+#############################################################################################################################
+#******************************************** Sensor Data Request **********************************************************#
+#############################################################################################################################
+        elif message1 == "Speed_data":
+            #get speed data here (query sql database or get it live of the CAN)
+            info = "Speed_data: "
+            info += str(speed_data)
+            msg1 = (str(info)).encode("utf-8")
+        elif message1 == "Temp_data_all":
+            #get temp data from all sources here (query sql database or get it live of the CAN)
+            info = "Temp data" + str(source_id) + ": " #get the id of the node which sent the data
+            info += str(temp_data)
+            msg1 = (str(info)).encode("utf-8")
+        elif message1 == "Bat_SOC":
+            #get SOC data (query sql database or get it live of the CAN)
+            info = "SOC: " 
+            info += str(SOC)
+            msg1 = (str(info)).encode("utf-8")
+#############################################################################################################################
+#******************************************************** Errors ***********************************************************#
+#############################################################################################################################
         else:
             message1 = "Unknown command \nType: _info_ for a list of commands"
             msg1 = (str(message1)).encode("utf-8")
+#############################################################################################################################
+#**************************************************** Sending Message ******************************************************#
+#############################################################################################################################
         try:
             conn.sendall(msg1)
         except:
