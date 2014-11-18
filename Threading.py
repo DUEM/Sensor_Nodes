@@ -49,6 +49,19 @@ def threadFunc(conn, addr):
             info = "SOC: " 
             info += str(SOC)
             msg1 = (str(info)).encode("utf-8")
+############################################################################################################################
+#******************************************************** Recieving Commands **********************************************#
+############################################################################################################################
+        elif "_SEND_CAN_MESSAGE_" in message1:
+            # checks if want to send a can message 
+            send_can_message(message_to_send) #some method to send a can message
+        elif "_SET_MESSAGE_FREQUENCY_" in message1:
+            # checks if want to change the rate a messages are sent at 
+            msg_freq = message1[-1] # set the frequency of messages
+        elif "_SET_SAVE_FREQUENCY_" in message1:
+            # checks if want to change how often to save on the loggers local storage
+            save_freq = message1[-1] #set message save frequency
+
 #############################################################################################################################
 #******************************************************** Errors ***********************************************************#
 #############################################################################################################################
