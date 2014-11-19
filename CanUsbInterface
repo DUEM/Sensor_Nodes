@@ -1,0 +1,25 @@
+
+import serial
+
+
+#open port
+ser = serial.Serial(0)
+
+#when something appears on canbus sort and store item
+while 1:
+    x= ser.readline()
+    print(x)
+    
+    node_id = 
+    if node_id == :
+    elif node_id == :
+    elif node_id == :
+    elif node_id == :
+    elif node_id == :
+    elif node_id == :
+    elif node_id == :
+    else:
+        print("nothing recieved")
+    #close port when finshed
+    ser.close()
+
