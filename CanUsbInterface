@@ -7,7 +7,7 @@ ser = serial.Serial(0)
 #when something appears on canbus sort and store item
 while 1:
     x= ser.readline()
-    print(x)
+    print(x,"\n")
     node_id =1
 
     if node_id == 1:
