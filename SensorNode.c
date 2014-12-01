@@ -5,6 +5,13 @@
 
 #include <SPI.h>
 #include "mcp_can.h"
+#define MESSAGE_ID_ERROR_BITCH_PLEASE 0
+#define BITCH_PLEASE 20
+#define WOOF_BACK 21
+#define BITCHES_BE_CRAZY 22
+#define VIVA_LA_REVELOUTION 23
+#define GROWLING 30
+#define SANDWICH_TIME 31
 /* 
 could also define if the last 3 bits are 111 then its some sort of recalibration message.
 */
@@ -92,6 +99,24 @@ void loop()
         	CAN.readMsgBufID(*sender_id,*message_length,*message_data);	// read data,  len: data length, buf: data 
 			CommandID     = ((message_data[0] >> 3) & 0x1F) ; //getting first five bits
    		        TargetID    = (((message_data[0] & 0x07) << 8) || message_data[1]);
+   		        if(CommandID == MESSAGE_ID_ERROR_BITCH_PLEASE){
+   		  			
+   		        }
+   		        else if(CommandID == BITCH_PLEASE){
+   		  			
+   		        }
+   		        else if(CommandID == WOOF_BACK){
+   		  			
+   		        }
+   		        else if(CommandID == BITCHES_BE_CRAZY){
+   		  		
+   		        }
+   		        else if(CommandID == VIVA_LA_REVELOUTION){
+   		  			
+   		        }
+   		        else if(CommandID == GROWLING){
+   		  			
+   		        }
    		        
    			DataFieldID  = (RecievedMessageID & 0x03FC0000)	>> 16;
    			Reserved     = (RecievedMessageID & 0x3C000000)	>> 24;
