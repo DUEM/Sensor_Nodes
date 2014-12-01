@@ -29,6 +29,9 @@ unsigned char message[8] 				// message to be sent
 INT32U send_message_id;						// send id to message
 INT32U recieved_message_id;					// message id recieved
 INT8U remote_frame;					// whether the message is a remote frame or not
+INT32U sender_id;
+INT8U message_length;
+INT8U message_data[8];
 
 
 char str[20];
@@ -85,17 +88,14 @@ void loop()
 	 if(CAN_MSGAVAIL == CAN.checkReceive())             // check if data coming
    		{
     
-        	FlagRecv = 0;                					// clear flag
-        	CAN.readMsgBuf(&Length, Buffer);    			// read data,  len: data length, buf: data buf
-		
-			RemoteFrame = CAN.isRemoteRequest(void) 		//checking if a remote frame is recieved 	
-			RecievedMessageID = CAN.getCanId(void); 		// getting message id.
-		    
-			TargetID     = (RecievedMessageID & 0x000001FF)		 ;
-   		        CommandID    = (RecievedMessageID & 0x0001FE00) >> 9 ;
-   			DataFieldID  = (RecievedMessageID & 0x03FC0000)	>> 17;
-   			Reserved     = (RecievedMessageID & 0x3C000000)	>> 25;
-   			Frequency    = (RecievedMessageID & 0xF8000000)	>> 28;
+        	FlagRecv = 0;     // clear flag
+        	CAN.readMsgBufID(*sender_id,*message_length,*message_data);	// read data,  len: data length, buf: data 
+			CommandID     = ((message_data[0] >> 3) & 0x1F) ; //getting first five bits
+   		        TargetID    = (((message_data[0] & 0x07) << 8) || message_data[1]);
+   		        
+   			DataFieldID  = (RecievedMessageID & 0x03FC0000)	>> 16;
+   			Reserved     = (RecievedMessageID & 0x3C000000)	>> 24;
+   			Frequebuwyuevwcucweuycgerrrrrrrrrwncy    = (RecievedMessageID & 0xF8000000)	>> 28;
 		}
 		
 		
