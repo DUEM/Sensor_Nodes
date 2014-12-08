@@ -5,13 +5,15 @@
 
 #include <SPI.h>
 #include "mcp_can.h"
-#define MESSAGE_ID_ERROR_BITCH_PLEASE 0
-#define BITCH_PLEASE 20
-#define WOOF_BACK 21
-#define BITCHES_BE_CRAZY 22
-#define VIVA_LA_REVELOUTION 23
-#define GROWLING 30
-#define SANDWICH_TIME 31
+#define MYID 100
+#define GLOBALID 1000
+#define ERROR_MESSAGE 0
+#define DATA_TRANSMIT 20
+#define DATA_REQUEST 21
+#define BROADCAST_REQUEST 22
+#define PARAMETER_SET 23
+#define PING 30
+#define ACKNOWLEDGE 31
 /* 
 could also define if the last 3 bits are 111 then its some sort of recalibration message.
 */
@@ -96,29 +98,33 @@ void loop()
    		{
     
         	FlagRecv = 0;     // clear flag
-        	CAN.readMsgBufID(*sender_id,*message_length,*message_data);	// read data,  len: data length, buf: data 
-			CommandID     = ((message_data[0] >> 3) & 0x1F) ; //getting first five bits
-   		        TargetID    = (((message_data[0] & 0x07) << 8) || message_data[1]);
-   		        if(CommandID == MESSAGE_ID_ERROR_BITCH_PLEASE){
+        	CAN.readMsgBufID(*sender_id,*message_length,*message_data);			// read data,  len: data length, buf: data 
+		CommandID   = ((message_data[0] >> 3) & 0x1F); 					//getting first five bits
+   	        TargetID    = (((message_data[0] & 0x07) << 8) || message_data[1]);
+   		 if (TargetID == MyID || TargetID == GlobalID)  
+   		 {
+   		        if(CommandID == ERROR_MESSAGE){
+   		  		ErrorID   = (message_data[2]);
+   		  		ErrorData = (message_data[3]);
+   		        }
+   		        else if(CommandID == DATA_TRANSMIT){
+   		  				
+   		        }
+   		        else if(CommandID == DATA_REQUEST){
    		  			
    		        }
-   		        else if(CommandID == BITCH_PLEASE){
-   		  			
-   		        }
-   		        else if(CommandID == WOOF_BACK){
-   		  			
-   		        }
-   		        else if(CommandID == BITCHES_BE_CRAZY){
+   		        else if(CommandID == BROADCAST_REQUEST){
    		  		
    		        }
-   		        else if(CommandID == VIVA_LA_REVELOUTION){
+   		        else if(CommandID == PARAMETER_SET){
    		  			
    		        }
-   		        else if(CommandID == GROWLING){
+   		        else if(CommandID == PING){
    		  			
    		        }
    		        
    			DataFieldID  = (RecievedMessageID & 0x03FC0000)	>> 16;
+   			
    			Reserved     = (RecievedMessageID & 0x3C000000)	>> 24;
    			Frequebuwyuevwcucweuycgerrrrrrrrrwncy    = (RecievedMessageID & 0xF8000000)	>> 28;
 		}
