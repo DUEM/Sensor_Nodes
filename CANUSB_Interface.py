@@ -1,7 +1,5 @@
 
 import serial
-
-
 #open port
 ser = serial.Serial()
 ser.port = "COM7"
@@ -10,17 +8,19 @@ ser.timeout = 1
 ser.open()
 if(ser.isOpen()):
     print("Port opened")
-    #ser.write(r"S6\r") should set canusb speed of 500kbit/s
-    #ser.write(r"O\R") should open canusb
-    print("canbus opened")
+    ser.write(b"\r\r\r") #Clear residual messages 
+    ser.write(b"S6\r") #Set canusb speed of 500kbit/s
+    ser.write(b"O\r") #Open canusb
+    print(ser.read(5))
+    print("CANUSB activated")
 
 else:
     print( "Port did not open")
 
-#when something appears on canbus sort and store item
+#Sort messages
 t=0
-while t<10: #arbitrary number to ensure port eventually closes
-    print("i got here")
+while t<100: #arbitrary number to ensure port eventually closes
+    print("No. " +str(t))
     x= ser.read(22)
     print(x)
     y=list(x)
@@ -51,8 +51,7 @@ while t<10: #arbitrary number to ensure port eventually closes
         t+=1
     else:
         t+=1
-
+        print("No message")
     #close port when finished
-#ser.write(r"C\r") should close canbusb but doeesnt
+ser.write(b"C\r") #Close CANUSB
 ser.close()
-
