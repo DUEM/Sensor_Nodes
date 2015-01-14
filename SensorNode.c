@@ -41,7 +41,7 @@ INT8U remote_frame;					// whether the message is a remote frame or not
 INT32U sender_id;
 INT8U message_length;
 INT8U message_data[8];
-
+int test = 0;
 
 char str[20];
 
@@ -90,6 +90,11 @@ void send_data()
     delay(100);                       // send data per 100ms
 }
 
+int getspeed(){
+	// temp for testing replace with actual stuff
+	test = test + 1
+	return test
+}
 
 void loop()
 {
@@ -110,24 +115,32 @@ void loop()
    		        // CHECK EVERYTHING BELOW THIS POINT IS OK
    		        // Can definitely be shortened
    		        else if(CommandID == DATA_TRANSMIT){
-   		  		DataFieldID = (message_data[2])
-   		  		Flags = (message_data[3])
-   		  		DataFieldData = (message_data[4]) // Definitely wrong
+   		  		DataFieldID = (message_data[2]);
+   		  		Flags = (message_data[3]);
+   		  		DataFieldData = (message_data[4]); // Definitely wrong
    		  		// save data somewhere if needed
    		  		// write function to call
    		        }
    		        else if(CommandID == DATA_REQUEST){
-   		  		DataFieldID = (message_data[2])
-   		  		Flags = (message_data[3])
+   		  		DataFieldID = (message_data[2]);
+   		  		Flags = (message_data[3]);
+   		  		if (DataFieldID == 61){ // request for speed
+   		  			msg.CommandID = DATA_TRANSMIT;
+   		  			msg.TargetId = GlobalID; // change to return to sender only
+   		  			msg.DataFieldID = 61;
+   		  			msg.Flags = 0;
+   		  			msg.DataFieldData = getspeed();
+   		  			send(msg) // write function to send can message
+   		  		}
    		        }
    		        else if(CommandID == BROADCAST_REQUEST){
-   		  		DataFieldID = (message_data[2])
-   		  		Flags = (message_data[3])
+   		  		DataFieldID = (message_data[2]);
+   		  		Flags = (message_data[3]);
    		        }
    		        else if(CommandID == PARAMETER_SET){
-   		  		DataFieldID = (message_data[2])
-   		  		Flags = (message_data[3])
-   		  		DataFieldData = (message_data[4]) // Definitely wrong
+   		  		DataFieldID = (message_data[2]);
+   		  		Flags = (message_data[3]);
+   		  		DataFieldData = (message_data[4]); // Definitely wrong
    		  		// write function to update parameter if needed
    		        }
    		        else if(CommandID == PING){
