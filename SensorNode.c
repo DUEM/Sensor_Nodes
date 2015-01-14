@@ -107,20 +107,31 @@ void loop()
    		  		ErrorID   = (message_data[2]);
    		  		ErrorData = (message_data[3]);
    		        }
+   		        // CHECK EVERYTHING BELOW THIS POINT IS OK
+   		        // Can definitely be shortened
    		        else if(CommandID == DATA_TRANSMIT){
-   		  				
+   		  		DataFieldID = (message_data[2])
+   		  		Flags = (message_data[3])
+   		  		DataFieldData = (message_data[4]) // Definitely wrong
+   		  		// save data somewhere if needed
+   		  		// write function to call
    		        }
    		        else if(CommandID == DATA_REQUEST){
-   		  			
+   		  		DataFieldID = (message_data[2])
+   		  		Flags = (message_data[3])
    		        }
    		        else if(CommandID == BROADCAST_REQUEST){
-   		  		
+   		  		DataFieldID = (message_data[2])
+   		  		Flags = (message_data[3])
    		        }
    		        else if(CommandID == PARAMETER_SET){
-   		  			
+   		  		DataFieldID = (message_data[2])
+   		  		Flags = (message_data[3])
+   		  		DataFieldData = (message_data[4]) // Definitely wrong
+   		  		// write function to update parameter if needed
    		        }
    		        else if(CommandID == PING){
-   		  			
+   		  		
    		        }
    		        
    			DataFieldID  = (RecievedMessageID & 0x03FC0000)	>> 16;
