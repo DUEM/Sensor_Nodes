@@ -18,6 +18,18 @@
 could also define if the last 3 bits are 111 then its some sort of recalibration message.
 */
 
+struct DUEMCANMessage {
+	
+	int CommandID;
+	int TargetId;
+	
+	char Flags;
+	
+	short DataFieldID;
+	long DataFieldData;
+	
+}
+
 /* Variable Definitions */
 int TargetID,
 	CommandID,
@@ -125,11 +137,12 @@ void loop()
    		  		DataFieldID = (message_data[2]);
    		  		Flags = (message_data[3]);
    		  		if (DataFieldID == 61){ // request for speed
+   		  			DUEMCANMessage msg;
    		  			msg.CommandID = DATA_TRANSMIT;
    		  			msg.TargetId = GlobalID; // change to return to sender only
    		  			msg.DataFieldID = 61;
    		  			msg.Flags = 0;
-   		  			msg.DataFieldData = getspeed();
+   		  			msg.DataFieldData = (long) getspeed();
    		  			send(msg) // write function to send can message
    		  		}
    		        }
