@@ -18,6 +18,24 @@
 could also define if the last 3 bits are 111 then its some sort of recalibration message.
 */
 
+union Data
+{
+   int i;
+   float f;
+   char str[4];
+};
+
+struct DUEMCANMessage {
+	
+	int CommandID;
+	int TargetId;
+	
+	char Flags;
+	
+	short DataFieldID;
+	union Data DataFieldData;
+};
+
 /* Variable Definitions */
 int TargetID,
 	CommandID,
@@ -90,10 +108,10 @@ void send_data()
     delay(100);                       // send data per 100ms
 }
 
-int getspeed(){
+int getspeed() {
 	// temp for testing replace with actual stuff
-	test = test + 1
-	return test
+	test = test + 1;
+	return test;
 }
 
 void loop()
@@ -125,11 +143,12 @@ void loop()
    		  		DataFieldID = (message_data[2]);
    		  		Flags = (message_data[3]);
    		  		if (DataFieldID == 61){ // request for speed
+   		  			DUEMCANMessage msg;
    		  			msg.CommandID = DATA_TRANSMIT;
    		  			msg.TargetId = GlobalID; // change to return to sender only
    		  			msg.DataFieldID = 61;
    		  			msg.Flags = 0;
-   		  			msg.DataFieldData = getspeed();
+   		  			msg.DataFieldData.f = getspeed();
    		  			send(msg) // write function to send can message
    		  		}
    		        }
@@ -140,7 +159,8 @@ void loop()
    		        else if(CommandID == PARAMETER_SET){
    		  		DataFieldID = (message_data[2]);
    		  		Flags = (message_data[3]);
-   		  		DataFieldData = (message_data[4]); // Definitely wrong
+   		  		int i = 0;
+				for(i=0; i<4; i++) { DataFieldData.str[i] = message_data[i+4]; }
    		  		// write function to update parameter if needed
    		        }
    		        else if(CommandID == PING){
