@@ -52,18 +52,19 @@ MCP_CAN CAN(10);                                            // Set CS to pin 10
 unsigned char Flag_Recv = 0;
 unsigned char len = 0;
 unsigned char buf[8];
-unsigned char message[8] 				// message to be sent
+unsigned char message[8]; 				// message to be sent
 INT32U send_message_id;						// send id to message
 INT32U recieved_message_id;					// message id recieved
-INT8U remote_frame;					// whether the message is a remote frame or not
+INT32U remote_frame;					// whether the message is a remote frame or not
 INT32U sender_id;
+
 INT8U message_length;
 INT8U message_data[8];
 int test = 0;
 
 char str[20];
 
-void send_data() //get it to return something to check if it succeeds. give it an input for the data and node to send
+void send_data(); //get it to return something to check if it succeeds. give it an input for the data and node to send
 
 void setup()
 {
@@ -113,6 +114,8 @@ int getspeed() {
 	test = test + 1;
 	return test;
 }
+
+int FlagRecv;
 
 void loop()
 {
@@ -170,7 +173,6 @@ void loop()
    			DataFieldID  = (RecievedMessageID & 0x03FC0000)	>> 16;
    			
    			Reserved     = (RecievedMessageID & 0x3C000000)	>> 24;
-   			Frequebuwyuevwcucweuycgerrrrrrrrrwncy    = (RecievedMessageID & 0xF8000000)	>> 28;
 		}
 		
 		
