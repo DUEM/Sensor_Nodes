@@ -20,6 +20,9 @@
 
 #define DEVICE_NODE_TYPE        WHEEL_SPEED_SENSOR
 
+#define SHORT_TIMER_PERIOD      100    //millisecs
+#define LONG_TIMER_PERIOD       1000   //millisecs
+
 ////////////////////////////////////////////////
 // CAN Protocol Defines
 ////////////////////////////////////////////////
@@ -57,6 +60,11 @@ bool quiet = 0;
 float road_speed = 0; // road speed in m/s
 
 int i=0;
+
+long short_timer_last = 0;
+long short_timer_period = SHORT_TIMER_PERIOD;
+long long_timer_last = 0;
+long long_timer_period = LONG_TIMER_PERIOD;
 
 ////////////////////////////////////////////////
 
@@ -120,6 +128,7 @@ START_INIT:
     CAN.init_Mask(0, 0, CAN_MASK);
     CAN.init_Mask(1, 0, CAN_MASK);
     
+    // set all the masks in case they get reset (this is really annoying)
     CAN.init_Filt(0, 0, CAN_FILTER);
     CAN.init_Filt(1, 0, CAN_FILTER);
     CAN.init_Filt(2, 0, CAN_FILTER);
@@ -133,6 +142,35 @@ START_INIT:
 
 void loop()
 {
+    
+    ////////////////////////////////////////////////
+    // SHORT LOOP
+    ////////////////////////////////////////////////
+    
+    //Save value now to prevent value changing
+    long milliseconds = millis();
+    
+    if ( (milliseconds >= short_timer_last + short_timer_period) || (milliseconds < short_timer_last) ) {
+        //second condition just in case timer ticks over
+
+        
+        //reset last counter
+        short_timer_last = millis();
+    }
+    
+    ////////////////////////////////////////////////
+    // LONG LOOP
+    ////////////////////////////////////////////////
+    
+    milliseconds = millis();
+    
+    if ( (milliseconds >= long_timer_last + long_timer_period) || (milliseconds < long_timer_last) ) {
+        
+                
+        //reset last counter
+        long_timer_last = millis();
+    }
+    
     
     ////////////////////////////////////////////////
     // CAN message handler
@@ -169,7 +207,6 @@ void loop()
                 msg.DataFieldId = (message_buf[2]);
                 msg.Flags = (message_buf[3]);
                 
-                
                 // respond to request
                 if (msg.DataFieldId == ROAD_SPEED_S){ // request for speed
                     DUEMCANMessage msg_out;
@@ -180,7 +217,6 @@ void loop()
                     msg_out.DataFieldData.f = getspeed();
                     send_message(msg_out);
                 }
-                
                 
             }
             
@@ -224,7 +260,6 @@ void loop()
             Serial.print(message_buf[i]); Serial.print(" ");
         }
         Serial.println();
-        
         
     }
     
