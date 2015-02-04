@@ -16,7 +16,7 @@
 // Device Settings
 ////////////////////////////////////////////////
 
-#define DEVICE_NODE_ID          0x401
+#define DEVICE_NODE_ID          WHEEL_SPEED_SENSOR_ID
 
 #define DEVICE_NODE_TYPE        WHEEL_SPEED_SENSOR
 
@@ -24,9 +24,13 @@
 // CAN Protocol Defines
 ////////////////////////////////////////////////
 
+// Node IDs
+#define MAIN_CONTROLLER_ID      0x402
+#define WHEEL_SPEED_SENSOR_ID   0x420
+
 // Node Type IDs
-#define MAIN_CONTROLLER         0x402
-#define WHEEL_SPEED_SENSOR      0x420
+#define MAIN_CONTROLLER         1
+#define WHEEL_SPEED_SENSOR      20
 
 // Message Headers
 #define ERROR_MESSAGE           0b00000
@@ -117,11 +121,11 @@ START_INIT:
     CAN.init_Mask(1, 0, CAN_MASK);
     
     CAN.init_Filt(0, 0, CAN_FILTER);
-    CAN.init_Filt(1, 0, 0x400);
-    CAN.init_Filt(2, 0, 0x400);
-    CAN.init_Filt(3, 0, 0x400);
-    CAN.init_Filt(4, 0, 0x400);
-    CAN.init_Filt(5, 0, 0x400);
+    CAN.init_Filt(1, 0, CAN_FILTER);
+    CAN.init_Filt(2, 0, CAN_FILTER);
+    CAN.init_Filt(3, 0, CAN_FILTER);
+    CAN.init_Filt(4, 0, CAN_FILTER);
+    CAN.init_Filt(5, 0, CAN_FILTER);
 
 }
 
@@ -165,6 +169,7 @@ void loop()
                 msg.DataFieldId = (message_buf[2]);
                 msg.Flags = (message_buf[3]);
                 
+                
                 // respond to request
                 if (msg.DataFieldId == ROAD_SPEED_S){ // request for speed
                     DUEMCANMessage msg_out;
@@ -173,8 +178,9 @@ void loop()
                     msg_out.DataFieldId = ROAD_SPEED_S;
                     msg_out.Flags = 0;
                     msg_out.DataFieldData.f = getspeed();
-                    send_message(msg_out); // write function to send can message
+                    send_message(msg_out);
                 }
+                
                 
             }
             
@@ -285,7 +291,7 @@ void send_message(DUEMCANMessage msg) {
         break;
         
         case ACKNOWLEDGE:
-        message_len = 8;
+        message_len = 2;
         break;
         
     }
