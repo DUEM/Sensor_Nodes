@@ -117,11 +117,11 @@ START_INIT:
     CAN.init_Mask(1, 0, CAN_MASK);
     
     CAN.init_Filt(0, 0, CAN_FILTER);
-    //CAN.init_Filt(1, 0, 0x400);
-    //CAN.init_Filt(2, 0, 0x400);
-    //CAN.init_Filt(3, 0, 0x400);
-    //CAN.init_Filt(4, 0, 0x400);
-    //CAN.init_Filt(5, 0, 0x400);
+    CAN.init_Filt(1, 0, 0x400);
+    CAN.init_Filt(2, 0, 0x400);
+    CAN.init_Filt(3, 0, 0x400);
+    CAN.init_Filt(4, 0, 0x400);
+    CAN.init_Filt(5, 0, 0x400);
 
 }
 
@@ -170,7 +170,7 @@ void loop()
                     DUEMCANMessage msg_out;
                     msg_out.CommandId = DATA_TRANSMIT;
                     msg_out.TargetId = global_id; // change to return to sender only
-                    msg_out.DataFieldId = 61;
+                    msg_out.DataFieldId = ROAD_SPEED_S;
                     msg_out.Flags = 0;
                     msg_out.DataFieldData.f = getspeed();
                     send_message(msg_out); // write function to send can message
@@ -196,6 +196,10 @@ void loop()
             
             else if(msg.CommandId == PING){
                 // send ACK message back
+                DUEMCANMessage msg_out;
+                msg_out.CommandId = ACKNOWLEDGE;
+                msg_out.TargetId = global_id; // change to return to sender only
+                send_message(msg_out);
             }
             
             else if(msg.CommandId == ACKNOWLEDGE){
@@ -281,7 +285,7 @@ void send_message(DUEMCANMessage msg) {
         break;
         
         case ACKNOWLEDGE:
-        message_len = 2;
+        message_len = 8;
         break;
         
     }
