@@ -8,6 +8,8 @@
 #define CAN_BAUD_RATE           CAN_500KBPS
 #define CAN_GLOBAL_ID           0x400
 
+#define CAN_GLOBAL_RST_ID       0x000
+
 #define CAN_MASK                0xF00  //filter by the first 3 bits of message ID
 #define CAN_FILTER              0x400  //we only care about messages in the range 0x400 to 0x4FF
 
@@ -17,6 +19,7 @@
 ////////////////////////////////////////////////
 
 #define DEVICE_NODE_ID          WHEEL_SPEED_SENSOR_ID
+#define DEVICE_RESET_ID         DEVICE_NODE_ID | 0x500
 
 #define DEVICE_NODE_TYPE        WHEEL_SPEED_SENSOR
 
@@ -113,7 +116,7 @@ void setup()
 
 START_INIT:
 
-    if(CAN_OK == CAN.begin(CAN_BAUD_RATE)) // init can bus : baudrate = 500k
+    if(CAN_OK == CAN.begin(CAN_BAUD_RATE,1)) // init can bus : baudrate = 500k, RX buf pins on
     {
         Serial.println("CAN BUS Shield init ok!");
     }
@@ -126,14 +129,15 @@ START_INIT:
     
     
     //Mask for RXB0
-    CAN.init_Mask(0, 0, CAN_MASK);
+    CAN.init_Mask(0, 0, 0xFFF);
+    
+    //Filters for RXB0
+    CAN.init_Filt(0, 0, CAN_GLOBAL_RST_ID);
+    CAN.init_Filt(1, 0, DEVICE_RESET_ID );
+    
     
     //Mask for RXB1
     CAN.init_Mask(1, 0, CAN_MASK);
-    
-    //Filters for RXB0
-    CAN.init_Filt(0, 0, CAN_FILTER);
-    CAN.init_Filt(1, 0, CAN_FILTER);
     
     //Filters for RXB1
     CAN.init_Filt(2, 0, CAN_FILTER);
