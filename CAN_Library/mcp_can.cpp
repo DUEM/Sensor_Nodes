@@ -303,7 +303,7 @@ void MCP_CAN::mcp2515_initCANBuffers(void)
 ** Function name:           mcp2515_init
 ** Descriptions:            init the device
 *********************************************************************************************************/
-INT8U MCP_CAN::mcp2515_init(const INT8U canSpeed)                       /* mcp2515init                  */
+INT8U MCP_CAN::mcp2515_init(const INT8U canSpeed, INT8U rxind)                /* mcp2515init                  */
 {
 
   INT8U res;
@@ -371,6 +371,8 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canSpeed)                       /* mcp25
         mcp2515_modifyRegister(MCP_RXB1CTRL, MCP_RXB_RX_MASK,
         MCP_RXB_RX_STDEXT);
 #endif
+	
+	if (rxind) mcp2515_setRegister(0x0C, 0x0F);
                                                                         /* enter normal mode            */
         res = mcp2515_setCANCTRL_Mode(MODE_NORMAL);                                                                
         if(res)
@@ -544,12 +546,12 @@ MCP_CAN::MCP_CAN(INT8U _CS)
 ** Function name:           init
 ** Descriptions:            init can and set speed
 *********************************************************************************************************/
-INT8U MCP_CAN::begin(INT8U speedset)
+INT8U MCP_CAN::begin(INT8U speedset, INT8U rxind = 0)
 {
     INT8U res;
 
     SPI.begin();
-    res = mcp2515_init(speedset);
+    res = mcp2515_init(speedset, INT8U rxind);
     if (res == MCP2515_OK) return CAN_OK;
     else return CAN_FAILINIT;
 }
