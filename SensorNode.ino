@@ -124,13 +124,18 @@ START_INIT:
         goto START_INIT;
     }
     
-    // there are 2 masks in mcp2515, you need to set both of them
+    
+    //Mask for RXB0
     CAN.init_Mask(0, 0, CAN_MASK);
+    
+    //Mask for RXB1
     CAN.init_Mask(1, 0, CAN_MASK);
     
-    // set all the masks in case they get reset (this is really annoying)
+    //Filters for RXB0
     CAN.init_Filt(0, 0, CAN_FILTER);
     CAN.init_Filt(1, 0, CAN_FILTER);
+    
+    //Filters for RXB1
     CAN.init_Filt(2, 0, CAN_FILTER);
     CAN.init_Filt(3, 0, CAN_FILTER);
     CAN.init_Filt(4, 0, CAN_FILTER);
