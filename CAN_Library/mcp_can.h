@@ -70,7 +70,7 @@ private:
     INT8U mcp2515_readStatus(void);                                     /* read mcp2515's Status        */
     INT8U mcp2515_setCANCTRL_Mode(const INT8U newmode);                 /* set mode                     */
     INT8U mcp2515_configRate(const INT8U canSpeed);                     /* set boadrate                 */
-    INT8U mcp2515_init(const INT8U canSpeed);                           /* mcp2515init                  */
+    INT8U mcp2515_init(const INT8U canSpeed, INT8U rxind);              /* mcp2515init                  */
 
     void mcp2515_write_id( const INT8U mcp_addr,                        /* write can id                 */
                                const INT8U ext,
