@@ -551,7 +551,7 @@ INT8U MCP_CAN::begin(INT8U speedset, INT8U rxind = 0)
     INT8U res;
 
     SPI.begin();
-    res = mcp2515_init(speedset, INT8U rxind);
+    res = mcp2515_init(speedset, rxind);
     if (res == MCP2515_OK) return CAN_OK;
     else return CAN_FAILINIT;
 }
