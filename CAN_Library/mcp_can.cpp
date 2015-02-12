@@ -546,7 +546,7 @@ MCP_CAN::MCP_CAN(INT8U _CS)
 ** Function name:           init
 ** Descriptions:            init can and set speed
 *********************************************************************************************************/
-INT8U MCP_CAN::begin(INT8U speedset, INT8U rxind = 0)
+INT8U MCP_CAN::begin(INT8U speedset, INT8U rxind)
 {
     INT8U res;
 
