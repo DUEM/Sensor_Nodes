@@ -1,0 +1,75 @@
+#include <SPI.h>
+#include "mcp_can.h"
+
+
+unsigned char Flag_Recv = 0;
+
+INT32U in_id = 0;
+INT8U in_len = 0;
+INT8U in_data[8];
+
+INT32U out_id = 0;
+INT8U out_len = 0;
+INT8U out_data[8];
+
+char str[20];
+
+
+MCP_CAN CAN(10);                                            // Set CS to pin 10
+
+void setup()
+{
+    Serial.begin(115200);
+
+START_INIT:
+
+    if(CAN_OK == CAN.begin(CAN_500KBPS))                   // init can bus : baudrate = 500k
+    {
+        Serial.println("CAN BUS Shield init ok!");
+    }
+    else
+    {
+        Serial.println("CAN BUS Shield init fail");
+        Serial.println("Init CAN BUS Shield again");
+        delay(100);
+        goto START_INIT;
+    }
+}
+
+
+void loop()
+{
+    if(CAN_MSGAVAIL == CAN.checkReceive())            // check if data coming
+    {
+        CAN.readMsgBufID(&in_id, &in_len, in_data);    // read data,  len: data length, buf: data buf
+        
+        Serial.print(">>> id: "); Serial.print(in_id); Serial.print(", data:");
+        for(int i = 0; i < in_len; i++) { Serial.print(" "); Serial.print(in_data[i],HEX);}
+        Serial.println();
+    }
+    
+    
+    while (Serial.available() > 0) {
+      
+        // look for the next valid integer in the incoming serial stream:
+        out_id = Serial.parseInt();
+        out_len = Serial.parseInt();
+        
+        if(out_len<0) out_len=0;
+        if(out_len>8) out_len=8;
+        
+        for (int i=0; i < out_len; i++) { out_data[i] = Serial.parseInt(); }
+    
+
+        if (Serial.read() == '\n') {
+            
+            CAN.sendMsgBuf(out_id, 0, out_len, out_data);
+            
+            
+            Serial.print("<<< id: "); Serial.print(out_id); Serial.print(", data:");
+            for(int i = 0; i < out_len; i++) { Serial.print(" "); Serial.print(out_data[i],HEX);}
+            Serial.println();
+            
+        }
+    }
+}
