@@ -207,7 +207,7 @@ void loop()
                 msg.DataFieldId = (message_buf[2]);
                 msg.Flags = (message_buf[3]);
                 
-                for(i=0; i<4; i++) { msg.DataFieldData.str[i] = message_buf[i+4]; }
+                for(i=0; i<4; i++) { msg.DataFieldData.str[3-i] = message_buf[i+4]; }
                 
                 // save data somewhere if needed
             }
@@ -240,7 +240,7 @@ void loop()
                 msg.DataFieldId = (message_buf[2]);
                 msg.Flags = (message_buf[3]);
                 
-                for(i=0; i<4; i++) { msg.DataFieldData.str[i] = message_buf[i+4]; }
+                for(i=0; i<4; i++) { msg.DataFieldData.str[3-i] = message_buf[i+4]; }
                 
                 // write function to update parameter if needed
             }
@@ -308,7 +308,7 @@ void send_message(DUEMCANMessage msg) {
         message_len = 8;
         message_buf[2] = msg.DataFieldId;
         message_buf[3] = msg.Flags;
-        for(i=0; i<4; i++) { message_buf[i+4] = msg.DataFieldData.str[i]; }
+        for(i=0; i<4; i++) { message_buf[i+4] = msg.DataFieldData.str[3-i]; }
         break;
         
         case DATA_REQUEST:
@@ -327,7 +327,7 @@ void send_message(DUEMCANMessage msg) {
         message_len = 8;
         message_buf[2] = msg.DataFieldId;
         message_buf[3] = msg.Flags;
-        for(i=0; i<4; i++) { message_buf[i+4] = msg.DataFieldData.str[i]; }
+        for(i=0; i<4; i++) { message_buf[i+4] = msg.DataFieldData.str[3-i]; }
         break;
         
         case PING:
