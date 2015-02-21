@@ -77,6 +77,7 @@
 #define ACKNOWLEDGE             0b11111
 
 // Data Field IDs
+#define FIELD_NODE_ID           1
 #define ROAD_SPEED_S            61
 
 ////////////////////////////////////////////////
@@ -175,6 +176,11 @@ START_INIT:
     CAN.init_Filt(5, 0, CAN_FILTER);
   
     initTemp();
+    
+    DUEMCANMessage msg_out;
+    msg_out.CommandId = ACKNOWLEDGE;
+    msg_out.TargetId = global_id; // change to return to sender only
+    send_message(msg_out);
 }
 
 ////////////////////////////////////////////////
@@ -245,6 +251,17 @@ void loop()
             else if(msg.CommandId == DATA_REQUEST){
                 msg.DataFieldId = (message_buf[2]);
                 msg.Flags = (message_buf[3]);
+                
+                
+                if (msg.DataFieldId == FIELD_NODE_ID){
+                    DUEMCANMessage msg_out;
+                    msg_out.CommandId = DATA_TRANSMIT;
+                    msg_out.TargetId = global_id;
+                    msg_out.DataFieldId = FIELD_NODE_ID;
+                    msg_out.Flags = 0;
+                    msg_out.DataFieldData.i = node_id;
+                    send_message(msg_out);
+                }
                 
                 // respond to request
                 if (msg.DataFieldId == ROAD_SPEED_S){ // request for speed
