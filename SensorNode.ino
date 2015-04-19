@@ -48,6 +48,7 @@
 #define ACKNOWLEDGE             0b11111
 
 // Data Field IDs
+#define FIELD_NODE_ID           1
 #define ROAD_SPEED_S            61
 
 ////////////////////////////////////////////////
@@ -73,7 +74,7 @@ long long_timer_period = LONG_TIMER_PERIOD;
 
 union FourByteData
 {
-    int i;
+    INT32U i;
     float f;
     char str[4];
 };
@@ -144,6 +145,14 @@ START_INIT:
     CAN.init_Filt(3, 0, CAN_FILTER);
     CAN.init_Filt(4, 0, CAN_FILTER);
     CAN.init_Filt(5, 0, CAN_FILTER);
+    
+    DUEMCANMessage msg_out;
+    msg_out.CommandId = DATA_TRANSMIT;
+    msg_out.TargetId = global_id;
+    msg_out.DataFieldId = FIELD_NODE_ID;
+    msg_out.Flags = 0;
+    msg_out.DataFieldData.i = node_id;
+    send_message(msg_out);
 
 }
 
