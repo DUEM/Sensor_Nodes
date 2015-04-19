@@ -146,6 +146,8 @@ START_INIT:
     CAN.init_Filt(4, 0, CAN_FILTER);
     CAN.init_Filt(5, 0, CAN_FILTER);
     
+    CAN.enableBufferPins();
+    
     DUEMCANMessage msg_out;
     msg_out.CommandId = DATA_TRANSMIT;
     msg_out.TargetId = global_id;
