@@ -70,7 +70,7 @@ private:
     INT8U mcp2515_readStatus(void);                                     /* read mcp2515's Status        */
     INT8U mcp2515_setCANCTRL_Mode(const INT8U newmode);                 /* set mode                     */
     INT8U mcp2515_configRate(const INT8U canSpeed);                     /* set boadrate                 */
-    INT8U mcp2515_init(const INT8U canSpeed, INT8U rxind);              /* mcp2515init                  */
+    INT8U mcp2515_init(const INT8U canSpeed);                           /* mcp2515init                  */
 
     void mcp2515_write_id( const INT8U mcp_addr,                        /* write can id                 */
                                const INT8U ext,
@@ -97,7 +97,7 @@ private:
 
 public:
     MCP_CAN(INT8U _CS);
-    INT8U begin(INT8U speedset, INT8U rxind=0);                       /* init can                     */
+    INT8U begin(INT8U speedset);									/* init can                     */
     INT8U init_Mask(INT8U num, INT8U ext, INT32U ulData);           /* init Masks                   */
     INT8U init_Filt(INT8U num, INT8U ext, INT32U ulData);           /* init filters                 */
     INT8U sendMsgBuf(INT32U id, INT8U ext, INT8U rtr, INT8U len, INT8U *buf);   /* send buf                     */
@@ -108,6 +108,14 @@ public:
     INT8U checkError(void);                                         /* if something error           */
     INT32U getCanId(void);                                          /* get can id when receive      */
     INT8U isRemoteRequest(void);                                    /* get RR flag when receive     */
+	
+	INT8U enableBufferPins(void) {
+		INT8U res = MCP2515_OK;
+		res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
+		mcp2515_setRegister(0x0C, 0x0F);
+        res = mcp2515_setCANCTRL_Mode(MODE_NORMAL);     
+	}
+	
 };
 
 #endif
