@@ -23,7 +23,7 @@
 
 #define DEVICE_NODE_TYPE        WHEEL_SPEED_SENSOR
 
-#define SHORT_TIMER_PERIOD      100    //millisecs
+#define SHORT_TIMER_PERIOD      100     //millisecs
 #define LONG_TIMER_PERIOD       1000   //millisecs
 
 ////////////////////////////////////////////////
@@ -69,6 +69,8 @@ long short_timer_last = 0;
 long short_timer_period = SHORT_TIMER_PERIOD;
 long long_timer_last = 0;
 long long_timer_period = LONG_TIMER_PERIOD;
+
+int strobea=0;
 
 ////////////////////////////////////////////////
 
@@ -117,7 +119,7 @@ void setup()
 
 START_INIT:
 
-    if(CAN_OK == CAN.begin(CAN_BAUD_RATE,1)) // init can bus : baudrate = 500k, RX buf pins on
+    if(CAN_OK == CAN.begin(CAN_BAUD_RATE)) // init can bus : baudrate = 500k, RX buf pins on
     {
         Serial.println("CAN BUS Shield init ok!");
     }
@@ -155,6 +157,8 @@ START_INIT:
     msg_out.Flags = 0;
     msg_out.DataFieldData.i = node_id;
     send_message(msg_out);
+    
+    pinMode(7, OUTPUT);
 
 }
 
@@ -173,6 +177,8 @@ void loop()
     if ( (milliseconds >= short_timer_last + short_timer_period) || (milliseconds < short_timer_last) ) {
         //second condition just in case timer ticks over
 
+        strobea = 1-strobea;
+        digitalWrite(7, strobea);
         
         //reset last counter
         short_timer_last = millis();
