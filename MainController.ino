@@ -61,6 +61,10 @@ INT32U node_type = DEVICE_NODE_TYPE;
 bool quiet = 0;
 float road_speed = 0; // road speed in m/s
 
+float motor_set_speed = 30.0;
+float motor_set_current = 0.0;
+float bus_set_current = 0.5;
+
 int i=0; //general counter
 bool strobea=0; //var for heartbeat
 
