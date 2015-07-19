@@ -1,7 +1,7 @@
 #include <SPI.h>
 #include "mcp_can.h"
 #include "can_protocol.h"
-#include "duem_can.h"
+#include "DUEM_can.h"
 
 ////////////////////////////////////////////////
 // Device Settings
@@ -19,7 +19,6 @@
 // Global Variables
 ////////////////////////////////////////////////
 
-int i=0; //general counter
 bool strobea=0; //var for heartbeat
 
 long short_timer_last = 0;
@@ -50,6 +49,8 @@ START_INIT:
         goto START_INIT;
     }
     
+    node_id = DEVICE_NODE_ID;
+    node_type = DEVICE_NODE_TYPE;
     
     //Mask for RXB0
     CAN.init_Mask(0, 0, 0xFFF);
@@ -124,80 +125,7 @@ void loop()
     if(CAN_MSGAVAIL == CAN.checkReceive())            // check if data coming
     {
         CAN.readMsgBufID(&message_id, &message_len, message_buf);
-        
-        DUEMCANMessage msg;
-        
-        msg.CommandId = ((message_buf[0] >> 3) & 0x1F); //get first five bits
-        msg.TargetId = (((message_buf[0] & 0x07) << 8) | message_buf[1]); //get next 11
-        
-        if (msg.TargetId == node_id || msg.TargetId == global_id) {
-          
-            if(msg.CommandId == ERROR_MESSAGE){
-                msg.ErrorId = (message_buf[2]);
-                msg.ErrorData = (message_buf[3]);
-                
-                // Do something maybe
-            }
-            
-            else if(msg.CommandId == DATA_TRANSMIT){
-                msg.DataFieldId = (message_buf[2]);
-                msg.Flags = (message_buf[3]);
-                
-                for(i=0; i<4; i++) { msg.DataFieldData.str[3-i] = message_buf[i+4]; }
-                
-                // save data somewhere if needed
-            }
-            
-            else if(msg.CommandId == DATA_REQUEST){
-                msg.DataFieldId = (message_buf[2]);
-                msg.Flags = (message_buf[3]);
-                
-                // respond to request
-                if (msg.DataFieldId == FIELD_NODE_ID){ // request for speed
-                    DUEMCANMessage msg_out;
-                    msg_out.CommandId = DATA_TRANSMIT;
-                    msg_out.TargetId = global_id; // change to return to sender only
-                    msg_out.DataFieldId = FIELD_NODE_ID;
-                    msg_out.Flags = 0;
-                    msg_out.DataFieldData.i = node_id;
-                    send_message(msg_out);
-                }
-                
-            }
-            
-            else if(msg.CommandId == BROADCAST_REQUEST){
-                msg.DataFieldId = (message_buf[2]);
-                msg.Flags = (message_buf[3]);
-                
-                // respond to request
-            }
-            
-            else if(msg.CommandId == PARAMETER_SET){
-                msg.DataFieldId = (message_buf[2]);
-                msg.Flags = (message_buf[3]);
-                
-                for(i=0; i<4; i++) { msg.DataFieldData.str[3-i] = message_buf[i+4]; }
-                
-                // write function to update parameter if needed
-            }
-            
-            else if(msg.CommandId == PING){
-                // send ACK message back
-                DUEMCANMessage msg_out;
-                msg_out.CommandId = ACKNOWLEDGE;
-                msg_out.TargetId = global_id; // change to return to sender only
-                send_message(msg_out);
-            }
-            
-            else if(msg.CommandId == ACKNOWLEDGE){
-                // maybe do something
-            }
-            
-            else {
-                //unknown message type
-            }
-            
-        }
+        DUEMCANMessage msg = duem_rcv_message(message_id, message_len, message_buf);
         
         // Print message to serial for debugging
         Serial.print(message_id); Serial.print(":\t");
@@ -207,7 +135,6 @@ void loop()
         Serial.println();
         
     }
-    
     
 }
 
