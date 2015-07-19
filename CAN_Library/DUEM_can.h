@@ -28,6 +28,11 @@ struct DUEMCANMessage {
     union FourByteData DataFieldData;
 };
 
+INT32U global_id = CAN_GLOBAL_ID;
+INT32U node_id = DEVICE_NODE_ID;
+INT32U node_type = DEVICE_NODE_TYPE;
+bool quiet = 0;
+
 INT32U message_id = 0;
 INT8U message_len = 0;
 INT8U message_buf[8];
