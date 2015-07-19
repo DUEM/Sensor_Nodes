@@ -10,18 +10,18 @@
 
 #define CAN_GLOBAL_RST_ID       0x000
 
-#define CAN_MASK                0xF00  //filter by the first 3 bits of message ID
-#define CAN_FILTER              0x400  //we only care about messages in the range 0x400 to 0x4FF
+#define CAN_MASK                0x000  // We want all messages
+#define CAN_FILTER              0x000  
 
 
 ////////////////////////////////////////////////
 // Device Settings
 ////////////////////////////////////////////////
 
-#define DEVICE_NODE_ID          WHEEL_SPEED_SENSOR_ID
+#define DEVICE_NODE_ID          MAIN_CONTROLLER_ID
 #define DEVICE_RESET_ID         DEVICE_NODE_ID | 0x500
 
-#define DEVICE_NODE_TYPE        WHEEL_SPEED_SENSOR
+#define DEVICE_NODE_TYPE        MAIN_CONTROLLER
 
 #define SHORT_TIMER_PERIOD      100     //millisecs
 #define LONG_TIMER_PERIOD       1000   //millisecs
@@ -32,11 +32,9 @@
 
 // Node IDs
 #define MAIN_CONTROLLER_ID      0x402
-#define WHEEL_SPEED_SENSOR_ID   0x420
 
 // Node Type IDs
 #define MAIN_CONTROLLER         1
-#define WHEEL_SPEED_SENSOR      20
 
 // Message Headers
 #define ERROR_MESSAGE           0b00000
@@ -58,19 +56,19 @@
 INT32U global_id = CAN_GLOBAL_ID;
 INT32U node_id = DEVICE_NODE_ID;
 
-INT32U node_type = DEVICE_NODE_ID;
+INT32U node_type = DEVICE_NODE_TYPE;
 
 bool quiet = 0;
 float road_speed = 0; // road speed in m/s
 
-int i=0;
+int i=0; //general counter
+bool strobea=0; //var for heartbeat
 
 long short_timer_last = 0;
 long short_timer_period = SHORT_TIMER_PERIOD;
 long long_timer_last = 0;
 long long_timer_period = LONG_TIMER_PERIOD;
 
-int strobea=0;
 
 ////////////////////////////////////////////////
 
@@ -80,6 +78,11 @@ union FourByteData
     float f;
     char str[4];
 };
+
+union EightByteData {
+    float f[2];
+    INT8U c[8];
+} eight_byte_data;
 
 struct DUEMCANMessage {
     INT8U CommandId;
@@ -104,7 +107,6 @@ MCP_CAN CAN(10); // Set CS to pin 10
 
 ////////////////////////////////////////////////
 
-float getspeed();
 void send_message(DUEMCANMessage msg);
 
 ////////////////////////////////////////////////
@@ -135,10 +137,9 @@ START_INIT:
     CAN.init_Mask(0, 0, 0xFFF);
     
     //Filters for RXB0
-    CAN.init_Filt(0, 0, CAN_GLOBAL_RST_ID);
+    CAN.init_Filt(0, 0, CAN_GLOBAL_RST_ID );
     CAN.init_Filt(1, 0, DEVICE_RESET_ID );
-    
-    
+
     //Mask for RXB1
     CAN.init_Mask(1, 0, CAN_MASK);
     
@@ -150,6 +151,7 @@ START_INIT:
     
     CAN.enableBufferPins();
     
+    // Send Wake-up message
     DUEMCANMessage msg_out;
     msg_out.CommandId = DATA_TRANSMIT;
     msg_out.TargetId = global_id;
@@ -158,6 +160,7 @@ START_INIT:
     msg_out.DataFieldData.i = node_id;
     send_message(msg_out);
     
+    //enable LED for heartbeat
     pinMode(7, OUTPUT);
 
 }
@@ -173,13 +176,9 @@ void loop()
     
     //Save value now to prevent value changing
     long milliseconds = millis();
-    
     if ( (milliseconds >= short_timer_last + short_timer_period) || (milliseconds < short_timer_last) ) {
         //second condition just in case timer ticks over
 
-        strobea = 1-strobea;
-        digitalWrite(7, strobea);
-        
         //reset last counter
         short_timer_last = millis();
     }
@@ -189,10 +188,12 @@ void loop()
     ////////////////////////////////////////////////
     
     milliseconds = millis();
-    
     if ( (milliseconds >= long_timer_last + long_timer_period) || (milliseconds < long_timer_last) ) {
         
-                
+        //Update Heartbeat
+        strobea = 1-strobea;
+        digitalWrite(7, strobea);
+        
         //reset last counter
         long_timer_last = millis();
     }
@@ -234,13 +235,13 @@ void loop()
                 msg.Flags = (message_buf[3]);
                 
                 // respond to request
-                if (msg.DataFieldId == ROAD_SPEED_S){ // request for speed
+                if (msg.DataFieldId == FIELD_NODE_ID){ // request for speed
                     DUEMCANMessage msg_out;
                     msg_out.CommandId = DATA_TRANSMIT;
                     msg_out.TargetId = global_id; // change to return to sender only
-                    msg_out.DataFieldId = ROAD_SPEED_S;
+                    msg_out.DataFieldId = FIELD_NODE_ID;
                     msg_out.Flags = 0;
-                    msg_out.DataFieldData.f = getspeed();
+                    msg_out.DataFieldData.i = node_id;
                     send_message(msg_out);
                 }
                 
@@ -296,11 +297,6 @@ void loop()
 // Functions
 ////////////////////////////////////////////////
 
-float getspeed() {
-    // temp for testing replace with actual stuff
-    road_speed = road_speed + 1;
-    return road_speed;
-}
 
 ////////////////////////////////////////////////
 
