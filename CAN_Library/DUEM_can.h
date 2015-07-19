@@ -1,5 +1,10 @@
+//#ifndef _DUEM_can_H_
+//#define _DUEM_can_H_
+
 #include <SPI.h>
 #include "mcp_can.h"
+#include "can_protocol.h"
+
 
 ////////////////////////////////////////////////
 
@@ -13,7 +18,7 @@ union FourByteData
 union EightByteData {
     float f[2];
     INT8U c[8];
-} eight_byte_data;
+} extern eight_byte_data;
 
 struct DUEMCANMessage {
     INT8U CommandId;
@@ -28,22 +33,25 @@ struct DUEMCANMessage {
     union FourByteData DataFieldData;
 };
 
-INT32U global_id = CAN_GLOBAL_ID;
-INT32U node_id = DEVICE_NODE_ID;
-INT32U node_type = DEVICE_NODE_TYPE;
-bool quiet = 0;
+extern INT32U global_id;
+extern INT32U node_id;
+extern INT32U node_type;
+extern bool quiet;
 
-INT32U message_id = 0;
-INT8U message_len = 0;
-INT8U message_buf[8];
+extern INT32U message_id;
+extern INT8U message_len;
+extern INT8U message_buf[8];
 
-// Can Interface Object
-MCP_CAN CAN(10); // Set CS to pin 10
-
+extern MCP_CAN CAN;
 
 ////////////////////////////////////////////////
 
 void duem_send_message(DUEMCANMessage msg);
-DUEMCANMessage duem_rcv_message();
+DUEMCANMessage duem_rcv_message(INT32U id, INT8U len, byte* buf);
 
 ////////////////////////////////////////////////
+
+//#endif
+/*********************************************************************************************************
+  END FILE
+*********************************************************************************************************/
