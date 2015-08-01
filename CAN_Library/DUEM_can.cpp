@@ -11,8 +11,6 @@ INT32U message_id = 0;
 INT8U message_len = 0;
 INT8U message_buf[8];
 
-MCP_CAN CAN(10);
-
 
 void duem_send_message(DUEMCANMessage msg) {
   
