@@ -4,20 +4,24 @@
 
 #define CAN_BAUD_RATE           CAN_1000KBPS
 
-#define CAN_GLOBAL_ID           0x400
+#define CAN_GLOBAL_ID           0x200
 #define CAN_GLOBAL_RST_ID       0x000
 
 #define CAN_DEFAULT_MASK        0xF00
-#define CAN_DEFAULT_FILTER      0x400
+#define CAN_DEFAULT_FILTER      0x200
 
 ////////////////////////////////////////////////
 
 // Node IDs
-#define MAIN_CONTROLLER_ID      0x402
-#define WHEEL_SPEED_SENSOR_ID   0x420
+#define MAIN_CONTROLLER_ID      0x202
+#define WHEEL_SPEED_SENSOR_ID   0x220
 
-#define DRIVER_CONTROL_BASE     0x500
-#define MOTOR_CONTROL_BASE      0x600
+#define SENSOR_NODE_ID_BASE     0x200
+#define SENSOR_NODE_ID_RANGE    256
+#define DRIVER_CONTROL_ID_BASE  0x500
+#define DRIVER_CONTROL_ID_RANGE 4
+#define MOTOR_CONTROL_ID_BASE   0x600
+#define MOTOR_CONTROL_ID_RANGE  32
 
 ////////////////////////////////////////////////
 
