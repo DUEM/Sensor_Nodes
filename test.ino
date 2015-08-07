@@ -12,7 +12,7 @@
 
 #define DEVICE_NODE_TYPE        MAIN_CONTROLLER
 
-#define SHORT_TIMER_PERIOD      50     //millisecs
+#define SHORT_TIMER_PERIOD      100     //millisecs
 #define LONG_TIMER_PERIOD       1000   //millisecs
 
 ////////////////////////////////////////////////
@@ -22,7 +22,8 @@
 #define CAN_HW_ENABLE_PIN      10
 #define HEARTBEAT_LED_PIN      7
 
-#define CRUISE_CONTROL_PIN     A5
+#define SPEED_SET_PIN          A5
+#define ENABLE_PIN             1
 #define ACCELERATOR_PIN        4
 #define FORWARDS_PIN           3
 #define REVERSE_PIN            2
@@ -36,16 +37,15 @@ bool strobea=0; //var for heartbeat
 // Outputs for Motor
 float motor_set_speed = 0.0f;
 float motor_set_current = 0.0f;
-float bus_set_current = 0.0f;
+float bus_set_current = 0.95f;
+
 
 // Inputs from driver
 float driver_set_speed = 0.0f; //Input from potentiometer
 bool accel_pedal_pressed = 0;
-bool forwards_switch_pressed = 0;
-bool reverse_switch_pressed = 0;
 
 bool ignition_set = 0;
-bool reverse_set = 0;
+int direction_set = 0;
 
 long short_timer_last = 0;
 long short_timer_period = SHORT_TIMER_PERIOD;
@@ -60,7 +60,7 @@ MCP_CAN CAN(CAN_HW_ENABLE_PIN);
 
 void setup()
 {
-    Serial.begin(115200);
+    //Serial.begin(115200);
 
 ////////////////////////////////////////////////
 // Set up CAN interface and initialise various sensors
@@ -95,6 +95,10 @@ START_INIT:
     //Filters for RXB1
     CAN.init_Filt(2, 0, CAN_DEFAULT_FILTER);
     CAN.init_Filt(3, 0, CAN_DEFAULT_FILTER);
+    
+    //CAN.init_Filt(4, 0, CAN_DEFAULT_FILTER);
+    //CAN.init_Filt(5, 0, CAN_DEFAULT_FILTER);
+    
     CAN.init_Filt(4, 0, MOTOR_CONTROL_ID_BASE);
     CAN.init_Filt(5, 0, MOTOR_CONTROL_ID_BASE);
     
@@ -111,9 +115,11 @@ START_INIT:
     
     //enable LED for heartbeat
     pinMode(HEARTBEAT_LED_PIN, OUTPUT);
+    pinMode(8, OUTPUT);
     
     //enable switch inputs
     pinMode(ACCELERATOR_PIN, INPUT_PULLUP);
+    pinMode(ENABLE_PIN, INPUT_PULLUP);
     pinMode(FORWARDS_PIN, INPUT_PULLUP);
     pinMode(REVERSE_PIN, INPUT_PULLUP);    
 
@@ -137,22 +143,42 @@ void loop()
         int input_a = digitalRead(ACCELERATOR_PIN);
         int input_b = digitalRead(FORWARDS_PIN);
         int input_c = digitalRead(REVERSE_PIN);
+        int input_d = digitalRead(ENABLE_PIN);
+        int input_e = analogRead(SPEED_SET_PIN);
         
-        if (input_b == LOW) {
-          forwards_switch_pressed = 1; reverse_set = 0; ignition_set = 1;
-        } else if (input_c == LOW) {
-          reverse_switch_pressed = 1; reverse_set = 1; ignition_set = 1;
-        } else { forwards_switch_pressed = 0; reverse_switch_pressed = 0; ignition_set = 0; reverse_set = 0; }
-        
-        if (input_a = LOW) {
-          accel_pedal_pressed = 1;
+        if (input_a == LOW) {
+          digitalWrite(8, HIGH);
           motor_set_current = 0.75;
         } else {
-          accel_pedal_pressed = 0;
-          motor_set_current = 0.0;          
+          motor_set_current = 0.0;
+          digitalWrite(8, LOW);        
         }
         
+        if (input_b == LOW) {
+          direction_set = 1;
+          digitalWrite(8, HIGH);
+        } else if (input_c ==LOW) {
+          direction_set = -1;
+        } else {
+          direction_set = 0;
+          digitalWrite(8, LOW);  
+        }
+        
+        if (input_d == LOW) {
+          ignition_set = 1;
+        } else {
+          ignition_set = 0;
+        }
+        
+        driver_set_speed = input_e / 10.24;
+        motor_set_speed = driver_set_speed * direction_set;
+        
+        //long_timer_period = 2000;
+        
         if (ignition_set) {
+          
+          //long_timer_period = 1100 - (motor_set_speed * 10);
+          
           // Send Velocity + Current Message
           eight_byte_data.f[0] = motor_set_speed; //low float
           eight_byte_data.f[1] = motor_set_current; //high float
