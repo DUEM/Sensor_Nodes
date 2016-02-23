@@ -1,18 +1,17 @@
 #include <SPI.h>
 #include "mcp_can.h"
-#include "can_protocol.h"
-#include "DUEM_can.h"
+#include "LedControl.h"
+#include "can_consts.h"
 
 ////////////////////////////////////////////////
 // Device Settings
 ////////////////////////////////////////////////
 
-#define DEVICE_NODE_ID          MAIN_CONTROLLER_ID
-#define DEVICE_RESET_ID         DEVICE_NODE_ID + SENSOR_NODE_ID_RANGE
+#define DEVICE_RESET_ID         MAIN_CONTROLLER_RST_ID
 
 #define DEVICE_NODE_TYPE        MAIN_CONTROLLER
 
-#define SHORT_TIMER_PERIOD      100     //millisecs
+#define SHORT_TIMER_PERIOD      100    //millisecs
 #define LONG_TIMER_PERIOD       1000   //millisecs
 
 ////////////////////////////////////////////////
@@ -28,6 +27,12 @@
 #define FORWARDS_PIN           3
 #define REVERSE_PIN            2
 
+#define DISP_DATA_PIN          0
+#define DISP_CLK_PIN           A3
+#define DISP_CS_PIN            A4
+
+
+
 ////////////////////////////////////////////////
 // Global Variables
 ////////////////////////////////////////////////
@@ -38,6 +43,8 @@ bool strobea=0; //var for heartbeat
 float motor_set_speed = 0.0f;
 float motor_set_current = 0.0f;
 float bus_set_current = 0.95f;
+
+float car_speed = 0.0f;
 
 
 // Inputs from driver
@@ -52,9 +59,18 @@ long short_timer_period = SHORT_TIMER_PERIOD;
 long long_timer_last = 0;
 long long_timer_period = LONG_TIMER_PERIOD;
 
-EightByteData eight_byte_data;
+struct{
+  float f[2];
+  INT8U c[8];
+  INT32U i[2];
+} eight_byte_data;
+
+INT32U message_id;
+INT8U message_len;
+INT8U message_buf[8];
 
 MCP_CAN CAN(CAN_HW_ENABLE_PIN);
+LedControl ddisplay = LedControl(DISP_DATA_PIN, DISP_CLK_PIN, DISP_CS_PIN);
 
 ////////////////////////////////////////////////
 
@@ -70,17 +86,14 @@ START_INIT:
 
     if(CAN_OK == CAN.begin(CAN_BAUD_RATE)) // init can bus : baudrate = 500k, RX buf pins on
     {
-        Serial.println("CAN BUS Shield init ok!");
+        //Serial.println("CAN BUS Shield init ok!");
     }
     else
     {
-        Serial.println("CAN BUS Shield init fail");
+        //Serial.println("CAN BUS Shield init fail");
         delay(100);
         goto START_INIT;
     }
-    
-    node_id = DEVICE_NODE_ID;
-    node_type = DEVICE_NODE_TYPE;
     
     //Mask for RXB0
     CAN.init_Mask(0, 0, 0xFFF);
@@ -95,24 +108,16 @@ START_INIT:
     //Filters for RXB1
     CAN.init_Filt(2, 0, CAN_DEFAULT_FILTER);
     CAN.init_Filt(3, 0, CAN_DEFAULT_FILTER);
-    
-    //CAN.init_Filt(4, 0, CAN_DEFAULT_FILTER);
-    //CAN.init_Filt(5, 0, CAN_DEFAULT_FILTER);
-    
-    CAN.init_Filt(4, 0, MOTOR_CONTROL_ID_BASE);
-    CAN.init_Filt(5, 0, MOTOR_CONTROL_ID_BASE);
+    CAN.init_Filt(4, 0, CAN_DEFAULT_FILTER);
+    CAN.init_Filt(5, 0, CAN_DEFAULT_FILTER);
     
     CAN.enableBufferPins();
-    
-    // Send Wake-up message
-    DUEMCANMessage msg_out;
-    msg_out.CommandId = DATA_TRANSMIT;
-    msg_out.TargetId = global_id;
-    msg_out.DataFieldId = FIELD_NODE_ID;
-    msg_out.Flags = 0;
-    msg_out.DataFieldData.i = node_id;
-    duem_send_message(msg_out);
-    
+
+    //set up 7segs
+    ddisplay.shutdown(0,false);
+    ddisplay.setIntensity(0,2);
+    ddisplay.clearDisplay(0);
+
     //enable LED for heartbeat
     pinMode(HEARTBEAT_LED_PIN, OUTPUT);
     pinMode(8, OUTPUT);
@@ -145,7 +150,8 @@ void loop()
         int input_c = digitalRead(REVERSE_PIN);
         int input_d = digitalRead(ENABLE_PIN);
         int input_e = analogRead(SPEED_SET_PIN);
-        
+
+
         if (input_a == LOW) {
           digitalWrite(8, HIGH);
           motor_set_current = 0.75;
@@ -183,7 +189,7 @@ void loop()
           eight_byte_data.f[0] = motor_set_speed; //low float
           eight_byte_data.f[1] = motor_set_current; //high float
           
-          CAN.sendMsgBuf(DRIVER_CONTROL_ID_BASE+1, 0, 8, eight_byte_data.c);
+//          CAN.sendMsgBuf(DRIVER_CONTROLS_BASE+1, 0, 8, eight_byte_data.c);
         }
 
         //reset last counter
@@ -206,8 +212,22 @@ void loop()
         eight_byte_data.f[0] = 0.0f; //low float
         eight_byte_data.f[1] = bus_set_current; //high float
         
-        CAN.sendMsgBuf(DRIVER_CONTROL_ID_BASE+2, 0, 8, eight_byte_data.c);
+//        CAN.sendMsgBuf(DRIVER_CONTROLS_BASE+2, 0, 8, eight_byte_data.c);
         /////////////////
+
+        //if (ignition_set) {
+        if (1) {
+          int huns = int(car_speed/100.0)%10;
+          int tens = int(car_speed/10.0)%10;
+          int units = int(car_speed)%10;
+          int tenths = int(car_speed*10)%10;
+          if (huns) ddisplay.setDigit(0,3,huns,false);
+          if (tens) ddisplay.setDigit(0,2,tens,false);
+          ddisplay.setDigit(0,1,units,true);
+          ddisplay.setDigit(0,0,tenths,false);
+        } else {
+          ddisplay.clearDisplay(0);
+        }
         
         //reset last counter
         long_timer_last = millis();
@@ -220,22 +240,20 @@ void loop()
     
     if(CAN_MSGAVAIL == CAN.checkReceive())            // check if data coming
     {
-        CAN.readMsgBufID(&message_id, &message_len, message_buf);
+        CAN.readMsgBufID(&message_id, &message_len, eight_byte_data.c);
+
+         if (message_id == MOTOR_CONTROLLER_BASE+3) {
+            //Set values
+            car_speed = eight_byte_data.f[1]*3.6;
+         }
         
-        if ((message_id >= SENSOR_NODE_ID_BASE) && (message_id < SENSOR_NODE_ID_BASE+SENSOR_NODE_ID_RANGE)) {
-          DUEMCANMessage msg = duem_rcv_message(message_id, message_len, message_buf);
-          
-          
-        } else if ((message_id >= MOTOR_CONTROL_ID_BASE) && (message_id < MOTOR_CONTROL_ID_BASE+MOTOR_CONTROL_ID_RANGE)) {
-          //Handle Motor Controller Messages
-        }
-        
+        /*
         // Print message to serial for debugging
         Serial.print(message_id); Serial.print(":\t");
         for(int i = 0; i < message_len; i++) {
             Serial.print(message_buf[i]); Serial.print(" ");
         }
-        Serial.println();
+        Serial.println();*/
         
     }
     

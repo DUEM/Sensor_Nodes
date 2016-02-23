@@ -1,3 +1,8 @@
+#include <DUEM_can.h>
+#include <mcp_can.h>
+#include <mcp_can_dfs.h>
+#include <can_protocol.h>
+
 #include <SPI.h>
 #include "mcp_can.h"
 
@@ -109,6 +114,7 @@ void loop()
         /////////////////
         // Send Velocity + Current Message
 
+        motor_set_speed = motor_set_speed + 0.001;
         s_data.f[0] = motor_set_speed; //low float
         s_data.f[1] = motor_set_current; //high float
         
