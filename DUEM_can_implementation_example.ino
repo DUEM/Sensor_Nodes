@@ -3,6 +3,9 @@
 #include "can_protocol.h"
 #include "DUEM_can.h"
 
+// can_protocol contains the specific defines for the current protocol
+// DUEM_can handles DUEM's deprecated message wrapper and some other functions
+
 ////////////////////////////////////////////////
 // Device Settings
 ////////////////////////////////////////////////
@@ -47,13 +50,16 @@ bool accel_pedal_pressed = 0;
 bool ignition_set = 0;
 int direction_set = 0;
 
+// These are timers and stuff for doing loops which fire every X milliseconds
 long short_timer_last = 0;
 long short_timer_period = SHORT_TIMER_PERIOD;
 long long_timer_last = 0;
 long long_timer_period = LONG_TIMER_PERIOD;
 
+// instancing the eightbytedata which is a hack used to change between floats and bytes
 EightByteData eight_byte_data;
 
+// settign up a CAN instance, the argument taken is the device enable pin for spi (generally pin 10)
 MCP_CAN CAN(CAN_HW_ENABLE_PIN);
 
 ////////////////////////////////////////////////
@@ -68,6 +74,7 @@ void setup()
 
 START_INIT:
 
+    //This loop here tries to establish communication with the MCP2515
     if(CAN_OK == CAN.begin(CAN_BAUD_RATE)) // init can bus : baudrate = 500k, RX buf pins on
     {
         Serial.println("CAN BUS Shield init ok!");
@@ -81,6 +88,10 @@ START_INIT:
     
     node_id = DEVICE_NODE_ID;
     node_type = DEVICE_NODE_TYPE;
+    
+    //Setting up the Mask and Filter for each of the MCP2515's RX buffers (read up on it) using the Seeed library
+    //Mask 0 is for RXB0, Mask 1 is for RXB1
+    //Filter 0-1 are for RXB0, Filter 2-5 are for RXB1 (crazy, i know)
     
     //Mask for RXB0
     CAN.init_Mask(0, 0, 0xFFF);
