@@ -12,6 +12,7 @@
 // You'll have to use MAGIC(tm) to fix this (or just rewrite some code)
 
 // This is also a good example of how to use the basic Seeedstudio MCP2515 CAN library.
+// Written by Will Woof (awwoof@hotmail.com)
 
 #include <SPI.h>
 #include "mcp_can.h"
