@@ -1,4 +1,17 @@
-// Script for using a sensor node as a serial to CAN interface. You'll have to figure out the exact input syntax as I've forgotten it, but it should be easy to determine from the code -Will
+// Script for using a sensor node as a serial to CAN interface.
+// Only relies on the MCP2515 CAN library, not any of the DUEM code
+// To use, either wire up an arduino to aN MCP2515/2551 combo, or plug a serial adapter into a Sensornode.
+// If the MCP2515 has been set-up okay you will see "CAN BUS Shield init ok!" (if you see this message on a sensor node then god help you)
+// Messages should appear on the serial, just beware that the MSB might be the first byte!
+// To send a message, type comma separated integers (e.g. 1,2,3,76,245) followed by a newline
+// First integer is the message ID to send as,
+// Second integer is the length of the message in bytes (0-8)
+// Next integers are the values to send for each byte (0-255)
+// Example: 1024,4,1,2,3,4 should send Msg_id: #400, Msg_data: 01 02 03 04
+// BEWARE: I think the byte order gets sent the wrong way round so the MSB is on the far left.
+// You'll have to use MAGIC(tm) to fix this (or just rewrite some code)
+
+// This is also a good example of how to use the basic Seeedstudio MCP2515 CAN library.
 
 #include <SPI.h>
 #include "mcp_can.h"
