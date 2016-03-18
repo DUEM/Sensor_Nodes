@@ -7,10 +7,12 @@
 // Device Settings
 ////////////////////////////////////////////////
 
+// Filter to set RXB0 to. When RXB0 gets a message the output pin is pulled high which should reset the microcontroller.
 #define DEVICE_RESET_ID         MAIN_CONTROLLER_RST_ID
 
 #define DEVICE_NODE_TYPE        MAIN_CONTROLLER
 
+// Time intervals between triggers for the two inner loops
 #define SHORT_TIMER_PERIOD      100    //millisecs
 #define LONG_TIMER_PERIOD       1000   //millisecs
 
@@ -30,7 +32,6 @@
 #define DISP_DATA_PIN          0
 #define DISP_CLK_PIN           A3
 #define DISP_CS_PIN            A4
-
 
 
 ////////////////////////////////////////////////
@@ -54,21 +55,25 @@ bool accel_pedal_pressed = 0;
 bool ignition_set = 0;
 int direction_set = 0;
 
+// Variables for doing the two timer firings
 long short_timer_last = 0;
 long short_timer_period = SHORT_TIMER_PERIOD;
 long long_timer_last = 0;
 long long_timer_period = LONG_TIMER_PERIOD;
 
+// This struct is a useful hack for converting between datatypes.
 struct{
   float f[2];
   INT8U c[8];
   INT32U i[2];
 } eight_byte_data;
 
+// holders for CAn stuff
 INT32U message_id;
 INT8U message_len;
 INT8U message_buf[8];
 
+// Instancing the CAN object (Note: this doesn't mean it's set up)
 MCP_CAN CAN(CAN_HW_ENABLE_PIN);
 LedControl ddisplay = LedControl(DISP_DATA_PIN, DISP_CLK_PIN, DISP_CS_PIN);
 
@@ -76,6 +81,7 @@ LedControl ddisplay = LedControl(DISP_DATA_PIN, DISP_CLK_PIN, DISP_CS_PIN);
 
 void setup()
 {
+  //Uncomment for Serial for debugging, but this breaks stuff on pin 0/1
     //Serial.begin(115200);
 
 ////////////////////////////////////////////////
@@ -95,6 +101,13 @@ START_INIT:
         goto START_INIT;
     }
     
+    // If you don't understand CAN masks and Filters then read up on the MCP2515 or CAN in general
+    // Filters allow the MCP2515 to only accept messages with certain IDs
+    // The mask masks the filters for each buffer so can be used to create more general filters (ie filter a range)
+    // Mask 0 is for RXB0, Mask 1 is for RXB1
+    // Filters 0-1 are for RXB0
+    // Filters 2-5 are for RXB1
+    
     //Mask for RXB0
     CAN.init_Mask(0, 0, 0xFFF);
     
@@ -111,6 +124,10 @@ START_INIT:
     CAN.init_Filt(4, 0, CAN_DEFAULT_FILTER);
     CAN.init_Filt(5, 0, CAN_DEFAULT_FILTER);
     
+    //This is a function i wrote which turns on the two buffer output pins on the MCP2515
+    //When a message enters RXB0 or RXB1 the corresponding pin on the MCP2515 is pulled high
+    //Since the output pin of RXB0 is tied to reset of the MC this means we can reset through
+    //  CAN even if the MC has locked up. Simply send a message that will be accepted by RXB0
     CAN.enableBufferPins();
 
     //set up 7segs
@@ -143,6 +160,8 @@ void loop()
     long milliseconds = millis();
     if ( (milliseconds >= short_timer_last + short_timer_period) || (milliseconds < short_timer_last) ) {
         //second condition just in case timer ticks over
+        
+        //Put stuff that you want to reasonably often here.
         
         //INPUTS WILL BE LOW WHEN BUTTON IS PRESSED
         int input_a = digitalRead(ACCELERATOR_PIN);
@@ -178,18 +197,12 @@ void loop()
         
         driver_set_speed = input_e / 10.24;
         motor_set_speed = driver_set_speed * direction_set;
-        
-        //long_timer_period = 2000;
-        
+
         if (ignition_set) {
-          
-          //long_timer_period = 1100 - (motor_set_speed * 10);
-          
           // Send Velocity + Current Message
           eight_byte_data.f[0] = motor_set_speed; //low float
           eight_byte_data.f[1] = motor_set_current; //high float
-          
-//          CAN.sendMsgBuf(DRIVER_CONTROLS_BASE+1, 0, 8, eight_byte_data.c);
+          CAN.sendMsgBuf(DRIVER_CONTROLS_BASE+1, 0, 8, eight_byte_data.c);
         }
 
         //reset last counter
@@ -202,6 +215,9 @@ void loop()
     
     milliseconds = millis();
     if ( (milliseconds >= long_timer_last + long_timer_period) || (milliseconds < long_timer_last) ) {
+      
+        //Put stuff that you want to happen occasionally here.
+        
         
         //Update Heartbeat
         strobea = 1-strobea;
@@ -212,8 +228,9 @@ void loop()
         eight_byte_data.f[0] = 0.0f; //low float
         eight_byte_data.f[1] = bus_set_current; //high float
         
-//        CAN.sendMsgBuf(DRIVER_CONTROLS_BASE+2, 0, 8, eight_byte_data.c);
+        CAN.sendMsgBuf(DRIVER_CONTROLS_BASE+2, 0, 8, eight_byte_data.c);
         /////////////////
+
 
         //if (ignition_set) {
         if (1) {
