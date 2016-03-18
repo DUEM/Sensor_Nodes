@@ -61,6 +61,8 @@ START_INIT:
 
 void loop()
 {
+  
+  // This is all so we can check and send messages too ////////////////////////////
     if(CAN_MSGAVAIL == CAN.checkReceive())            // check if data coming
     {
         CAN.readMsgBufID(&in_id, &in_len, in_data);    // read data,  len: data length, buf: data buf
@@ -91,6 +93,7 @@ void loop()
             
         }
     }
+    //////////////////////////////////////////////////////////////////////////
     
     ////////////////////////////////////////////////
     // SHORT LOOP
@@ -102,9 +105,8 @@ void loop()
     if ( (milliseconds >= short_timer_last + short_timer_period) || (milliseconds < short_timer_last) ) {
         //second condition just in case timer ticks over
 
-
         // Set Current
-        motor_set_current = 0.4;// * analogRead(A0) / 1024;
+        motor_set_current = analogRead(A0) / 1024;
         
         /////////////////
         // Send Velocity + Current Message
