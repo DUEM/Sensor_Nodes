@@ -1,7 +1,4 @@
-#include <DallasTemperature.h>
-#include <OneWire.h>
 #include <Wire.h>
-
 #include <SPI.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -47,6 +44,8 @@ float max_bus_voltage_threshold = 180.0f;
 float min_bus_voltage_threshold = 140.0f;
 
 #define BATT_NUM 0
+
+// These are the oneWire addresses of all the temperature sensors that I painstakingly extracted
 
 DeviceAddress batt_add[3][12] = {
 { { 0x28, 0x17, 0xD5, 0xA0, 0x06, 0x00, 0x00, 0x34 },
